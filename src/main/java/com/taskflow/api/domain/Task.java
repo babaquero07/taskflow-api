@@ -2,8 +2,9 @@ package com.taskflow.api.domain;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -17,9 +18,14 @@ public class Task {
     private String description;
     private String status;
     private String priority;
-    private LocalDate dueDate;
-    private LocalDate createdAt;
-    private LocalDate completedAt;
+    private LocalDateTime dueDate;
+
+    @Column(nullable = true)
+    private LocalDateTime completedAt;
+
+    @CreationTimestamp
+    @Column(updatable = false, nullable = false)
+    private LocalDateTime createdAt;
 
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
