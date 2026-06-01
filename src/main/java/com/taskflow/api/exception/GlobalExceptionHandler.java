@@ -1,35 +1,40 @@
 package com.taskflow.api.exception;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+import java.net.URI;
+import java.time.Instant;
 
-import java.util.HashMap;
-import java.util.Map;
-
-@RestControllerAdvice
+@ControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, String>> handleDataIntegrityViolationSimple(DataIntegrityViolationException ex) {
-        Map<String, String> errorDetails = new HashMap<>();
-        errorDetails.put("error", "Conflicto de Datos");
-        errorDetails.put("message", "La operación no se pudo completar debido a un conflicto de datos. Asegúrate de que los valores sean únicos y las referencias existan.");
-        // O puedes usar el mensaje original de la causa raíz si no te importa exponerlo (no recomendado)
-        errorDetails.put("message", ex.getRootCause() != null ? ex.getRootCause().getMessage() : "Error de integridad de datos.");
-        return new ResponseEntity<>(errorDetails, HttpStatus.CONFLICT);
+    // 1. Catch your actual custom service exception
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleResourceNotFound(ResourceNotFoundException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Resource Not Found");
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return new ResponseEntity<>(problemDetail, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleGeneralException(Exception ex) {
-        System.err.println("Ocurrió un error inesperado: " + ex.getMessage());
-        ex.printStackTrace(); // En producción, se loguea, no se imprime a consola
+    // 2. Catch validation errors (and extract the actual validation messages)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ProblemDetail> handleValidation(MethodArgumentNotValidException ex) {
+        ProblemDetail problemDetail = ex.getBody();
+        problemDetail.setStatus(HttpStatus.BAD_REQUEST);
+        problemDetail.setTitle("Validation Failed");
+        problemDetail.setDetail("One or more fields failed validation.");
 
-        Map<String, String> errorDetails = new HashMap<>();
-        errorDetails.put("error", "Error Interno del Servidor");
-        errorDetails.put("message", "Ocurrió un error inesperado. Por favor, inténtalo de nuevo más tarde.");
+        // Optional: Extract specific field errors to show the client what failed
+        var errors = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .toList();
+        problemDetail.setProperty("errors", errors);
 
-        return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(problemDetail, HttpStatus.BAD_REQUEST);
     }
 }
