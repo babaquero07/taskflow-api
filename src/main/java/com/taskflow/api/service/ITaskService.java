@@ -11,5 +11,6 @@ public interface ITaskService {
     TaskResponseDto findById(Long id);
     TaskResponseDto save(TaskRequestDto taskRequestDto);
     TaskResponseDto update(Long id, TaskRequestDto taskRequestDto);
+    TaskResponseDto completeTask(Long id);
     void delete(Long id);
 }

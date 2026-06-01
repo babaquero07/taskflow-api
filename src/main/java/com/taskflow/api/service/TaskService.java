@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -75,6 +76,17 @@ public class TaskService implements ITaskService {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
 
+        taskRepository.save(task);
+
+        return taskMapper.toDto(task);
+    }
+
+    public TaskResponseDto completeTask(Long id) {
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+
+        task.setStatus("DONE");
+        task.setCompletedAt(LocalDateTime.now());
         taskRepository.save(task);
 
         return taskMapper.toDto(task);
