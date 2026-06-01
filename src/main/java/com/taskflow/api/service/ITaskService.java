@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface ITaskService {
     Page<TaskResponseDto> findAll(Pageable pageable);
+    Page<TaskResponseDto> findAllByStatus(String status, Pageable pageable);
     TaskResponseDto findById(Long id);
     TaskResponseDto save(TaskRequestDto taskRequestDto);
     TaskResponseDto update(Long id, TaskRequestDto taskRequestDto);

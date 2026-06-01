@@ -24,6 +24,15 @@ public class TaskController {
         return ResponseEntity.ok(tasks);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<Page<TaskResponseDto>> getAllTasksByStatus(
+            @RequestParam String status, Pageable pageable
+    ) {
+        Page<TaskResponseDto> tasks = taskService.findAllByStatus(status, pageable);
+
+        return ResponseEntity.ok(tasks);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<TaskResponseDto> findById(@PathVariable Long id) {
         TaskResponseDto task = taskService.findById(id);

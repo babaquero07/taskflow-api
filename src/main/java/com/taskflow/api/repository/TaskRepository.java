@@ -19,4 +19,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @NonNull
     @EntityGraph(attributePaths = "project")
     Optional<Task> findById(@NonNull Long id);
+
+    @EntityGraph(attributePaths = "project")
+    Page<Task> findTasksByStatus(String status, Pageable pageable);
 }

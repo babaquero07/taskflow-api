@@ -37,6 +37,17 @@ public class TaskService implements ITaskService {
 
     @Override
     @Transactional(readOnly = true)
+    public Page<TaskResponseDto> findAllByStatus(String status, Pageable pageable) {
+        Page<Task> taskPage = taskRepository.findTasksByStatus(status, pageable);
+
+        List<TaskResponseDto> dtos = taskPage.getContent().stream()
+                .map(taskMapper::toDto).toList();
+
+        return new PageImpl<>(dtos, pageable, taskPage.getTotalElements());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public TaskResponseDto findById(Long id) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("task not found"));
